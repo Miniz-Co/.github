@@ -36,7 +36,7 @@ jobs:
           check-latest: true
 
       - name: Go Format
-        run: gofmt -s -w . && git diff --exit-code
+        run: gofmt -s -w $(find . -not -path "*/vendor/*" -name "*.go") && git diff --exit-code
 
       - name: Go Vet
         run: go vet ./...
