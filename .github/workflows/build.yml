@@ -5,15 +5,18 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  schedule:
-  - cron: '0 10 * * 1' # run "At 10:00 on Monday"
   workflow_call:
     inputs:
       skipTests:
-        description: 'Skip tests, useful when there is a dedicated CI job for tests'
+        type: boolean
         default: false
         required: false
+        description: 'Skip tests, useful when there is a dedicated CI job for tests'
+      bench:
         type: boolean
+        default: false
+        required: false
+        description: 'Run go bench on the codebase'
 
 jobs:
   run:
@@ -27,10 +30,10 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
@@ -65,14 +68,5 @@ jobs:
         run: go test -v -count=1 -race -shuffle=on -coverprofile=coverage.txt ./...
 
       - name: Go Benchmark
-        if: ${{ !inputs.skipTests }}
+        if: ${{ inputs.bench }}
         run: go test -v -shuffle=on -run=- -bench=. -benchtime=1x ./...
-
-      - name: Upload Coverage
-        if: ${{ !inputs.skipTests }}
-        uses: codecov/codecov-action@v3
-        continue-on-error: true
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: ./coverage.txt
-          fail_ci_if_error: false
